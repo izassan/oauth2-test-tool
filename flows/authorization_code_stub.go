@@ -57,10 +57,33 @@ func openAuthorize(request *http.Request, served chan bool){
     fmt.Println("openAuthorize")
 }
 
-func startCallbackServer(c chan string, served chan bool){
-    fmt.Println("startCallbackServer")
-    served <- true
-    c <- "authorize_code"
+func startCallbackServer(port int, c chan string, served chan bool) error {
+    addr := fmt.Sprintf(":%d", port)
+    server := &http.Server{Addr: addr}
+    sig := make(chan bool)
+
+    handler := func(w http.ResponseWriter, r *http.Request){
+        fmt.Println("hello world")
+        c <- "authorize_code"
+        sig <- true
+    }
+    http.HandleFunc("/callback", handler)
+
+    go func(){
+        served <- true
+        if err := server.ListenAndServe(); err != nil{
+            log.Print(err)
+        }
+    }()
+    <-sig
+
+
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    if err := server.Shutdown(ctx); err != nil{
+        return err
+    }
+    return nil
 }
 
 func exhangeAccessToken(authorizeCode string, config *types.OttConfig) (string, error){
