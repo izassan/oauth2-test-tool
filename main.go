@@ -34,11 +34,8 @@ var rootCmd = &cobra.Command{
     Use: "example",
     Long: "command",
     RunE: func(cmd *cobra.Command, args []string) error {
+        flags := cmd.Flags()
         filePath, err := cmd.Flags().GetString("file")
-        if err != nil{
-            return err
-        }
-        noBrowser, err := cmd.Flags().GetBool("no-browser")
         if err != nil{
             return err
         }
@@ -48,7 +45,7 @@ var rootCmd = &cobra.Command{
             return err
         }
         if config.Auth_flow == "authorization_code" {
-            flows.AuthorizationCodeFlow(config, noBrowser)
+            flows.AuthorizationCodeFlow(config, flags)
         }
         return nil
     },
@@ -63,5 +60,6 @@ func main(){
 
 func init() {
     rootCmd.Flags().StringP("file", "f", "./config.json", "config file path")
+    rootCmd.Flags().IntP("port", "p", 8893, "callback server port")
     rootCmd.Flags().BoolP("no-browser", "b", false, "not browser option")
 }

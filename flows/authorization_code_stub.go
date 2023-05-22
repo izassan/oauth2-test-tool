@@ -1,13 +1,17 @@
 package flows
 
 import (
-    "fmt"
+	"context"
+	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/izassan/oauth2-testtool/types"
+	"github.com/spf13/pflag"
 )
 
-func AuthorizationCodeFlow(config *types.OttConfig, no_browser bool) error{
+func AuthorizationCodeFlow(config *types.OttConfig, flags *pflag.FlagSet) error{
 	AuthorizeRequest, err := generateAuthorizeURL(config)
 	if err != nil {
 		return err
@@ -15,12 +19,22 @@ func AuthorizationCodeFlow(config *types.OttConfig, no_browser bool) error{
 
 	c := make(chan string)
     served := make(chan bool)
+    no_browser, err := flags.GetBool("no-browser")
+    if err != nil{
+        return err
+    }
+
     if no_browser{
         go outputAuthorizeURL(AuthorizeRequest, served)
     }else{
         go openAuthorize(AuthorizeRequest, served)
     }
-	go startCallbackServer(c, served)
+
+    port, err := flags.GetInt("port")
+    if err != nil{
+        return err
+    }
+	go startCallbackServer(port, c, served)
 	authorizeCode := <-c
 
 	token, err := exhangeAccessToken(authorizeCode, config)
