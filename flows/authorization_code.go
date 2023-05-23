@@ -3,7 +3,6 @@ package flows
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -12,49 +11,37 @@ import (
 )
 
 func AuthorizationCodeFlow(config *types.OttConfig, flags *pflag.FlagSet) error{
-	AuthorizeRequest, err := generateAuthorizeURL(config)
-	if err != nil {
-		return err
-	}
+    // TODO: create authorize endpoint URL
 
-	c := make(chan string)
+    noBrowser, err := flags.GetBool("no-browser")
+    if err != nil{
+        return err
+    }
+
     served := make(chan bool)
-    no_browser, err := flags.GetBool("no-browser")
-    if err != nil{
-        return err
-    }
-
-    if no_browser{
-        go outputAuthorizeURL(AuthorizeRequest, served)
+    if noBrowser{
+        go outputAuthorizeURL("authorizeURL", served)
     }else{
-        go openAuthorize(AuthorizeRequest, served)
+        go openBrowser("authorizeURL", served)
     }
 
+    c := make(chan string)
     port, err := flags.GetInt("port")
-    if err != nil{
-        return err
-    }
-	go startCallbackServer(port, c, served)
-	authorizeCode := <-c
+    go startCallbackServer(port, c, served)
+    fmt.Printf("authorize_code: %s", <-c)
 
-	token, err := exhangeAccessToken(authorizeCode, config)
-	fmt.Println(token)
+    // TODO: exchange access token
     return nil
 }
 
-func generateAuthorizeURL(config *types.OttConfig) (*http.Request, error) {
-    fmt.Println("generateAuthorizeURL")
-	return nil, nil
+func outputAuthorizeURL(authorizeURL string, served chan bool){
+    <-served
+    fmt.Printf("access to: \n\t%s\n\n", authorizeURL)
 }
 
-func outputAuthorizeURL(request *http.Request, served chan bool){
+func openBrowser(authorizeURL string, served chan bool){
     <-served
-    fmt.Println("outputAuthorizeURL")
-}
-
-func openAuthorize(request *http.Request, served chan bool){
-    <-served
-    fmt.Println("openAuthorize")
+    fmt.Printf("open authorize endpoint with browser...\n\n")
 }
 
 func startCallbackServer(port int, c chan string, served chan bool) error {
@@ -63,7 +50,6 @@ func startCallbackServer(port int, c chan string, served chan bool) error {
     sig := make(chan bool)
 
     handler := func(w http.ResponseWriter, r *http.Request){
-        fmt.Println("hello world")
         c <- "authorize_code"
         sig <- true
     }
@@ -72,7 +58,6 @@ func startCallbackServer(port int, c chan string, served chan bool) error {
     go func(){
         served <- true
         if err := server.ListenAndServe(); err != nil{
-            log.Print(err)
         }
     }()
     <-sig
@@ -84,9 +69,4 @@ func startCallbackServer(port int, c chan string, served chan bool) error {
         return err
     }
     return nil
-}
-
-func exhangeAccessToken(authorizeCode string, config *types.OttConfig) (string, error){
-    fmt.Println("exhangeAccessToke")
-	return "access_token", nil
 }
