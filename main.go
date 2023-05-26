@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 
+	"github.com/izassan/oauth2-testtool/flows"
+	"github.com/izassan/oauth2-testtool/types"
 	"github.com/spf13/cobra"
-    "github.com/izassan/oauth2-testtool/flows"
-    "github.com/izassan/oauth2-testtool/types"
 )
 
 func parseConfig(filePath string) (*types.OttConfig, error){
@@ -45,7 +46,9 @@ var rootCmd = &cobra.Command{
             return err
         }
         if config.Auth_flow == "authorization_code" {
-            flows.AuthorizationCodeFlow(config, flags)
+            if err := flows.AuthorizationCodeFlow(config, flags); err != nil{
+                fmt.Println(err.Error())
+            }
         }
         return nil
     },
