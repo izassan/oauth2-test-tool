@@ -38,11 +38,13 @@ var rootCmd = &cobra.Command{
         flags := cmd.Flags()
         filePath, err := cmd.Flags().GetString("file")
         if err != nil{
+            fmt.Println(err.Error())
             return err
         }
 
         config, err := parseConfig(filePath)
         if err != nil{
+            fmt.Println(err.Error())
             return err
         }
         if config.Auth_flow == "authorization_code" {
