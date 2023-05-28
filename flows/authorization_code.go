@@ -45,6 +45,10 @@ func AuthorizationCodeFlow(config *types.OttConfig, flags *pflag.FlagSet) error 
     if err != nil{
         return err
     }
+    if config.Require_string == "authorize_url"{
+        fmt.Printf("Authorize Endpoint URL: %s\n", authorizeEndpointURL)
+        return nil
+    }
 
 	noBrowser, err := flags.GetBool("no-browser")
 	if err != nil {
@@ -62,6 +66,13 @@ func AuthorizationCodeFlow(config *types.OttConfig, flags *pflag.FlagSet) error 
 	port, err := flags.GetInt("port")
 	go startCallbackServer(port, ccq, served)
     cq := <-ccq
+    if config.Require_string == "authorize_code"{
+        fmt.Printf("Authorize Endpoint Response:\n")
+        fmt.Printf("\tcode: \"%s\"\n", cq.authorizeCode)
+        fmt.Printf("\tscope: \"%s\"\n", cq.scope)
+        fmt.Printf("\tstate: \"%s\"\n", cq.state)
+        return nil
+    }
 
     if err := useAuthorizer.ValidateState(cq.state); err != nil{
         return err
@@ -72,10 +83,12 @@ func AuthorizationCodeFlow(config *types.OttConfig, flags *pflag.FlagSet) error 
         return err
     }
 
-    fmt.Printf("access_token: %s\n", token.accessToken)
-    fmt.Printf("refresh_token: %s\n", token.refreshToken)
-    fmt.Printf("expire: %s\n", token.expireIn.Format("2006-01-02 15:04"))
-
+    if config.Require_string == "token"{
+        fmt.Printf("Token Endpoint Response:\n")
+        fmt.Printf("\taccess_token: \"%s\"\n", token.accessToken)
+        fmt.Printf("\trefresh_token: \"%s\"\n", token.refreshToken)
+        fmt.Printf("\texpire: \"%s\"\n", token.expireIn.Format("2006-01-02 15:04"))
+    }
 	return nil
 }
 
