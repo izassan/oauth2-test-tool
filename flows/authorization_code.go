@@ -14,7 +14,7 @@ import (
 
 type authorizer interface {
     init(config *types.OttConfig) error
-	GenerateAuthorizeURL(config *types.OttConfig) (string, error)
+	GenerateAuthorizeURL(config *types.OttConfig, redirectURL string) (string, error)
 	ExchangeAccessToken(authorizationCode string) (*token, error)
 	ValidateState(state string) error
 }
@@ -41,7 +41,12 @@ func AuthorizationCodeFlow(config *types.OttConfig, flags *pflag.FlagSet) error 
         return err
     }
 
-    authorizeEndpointURL, err := useAuthorizer.GenerateAuthorizeURL(config)
+    port, err := flags.GetInt("port")
+    if err != nil{
+        return err
+    }
+    redirectURL := fmt.Sprintf("http://localhost:%d/callback", port)
+    authorizeEndpointURL, err := useAuthorizer.GenerateAuthorizeURL(config, redirectURL)
     if err != nil{
         return err
     }
@@ -63,7 +68,6 @@ func AuthorizationCodeFlow(config *types.OttConfig, flags *pflag.FlagSet) error 
 	}
 
 	ccq := make(chan *callbackQueries)
-	port, err := flags.GetInt("port")
 	go startCallbackServer(port, ccq, served)
     cq := <-ccq
     if config.Require_string == "authorize_code"{

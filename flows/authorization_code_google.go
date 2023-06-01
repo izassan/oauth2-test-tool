@@ -28,7 +28,6 @@ func (g *googleAuthorizer) init(config *types.OttConfig) error {
     credentialBytes := CredentialData[:count]
 
     googleConfig, err := google.ConfigFromJSON(credentialBytes, config.Scope)
-    googleConfig.RedirectURL = "http://localhost:8893/callback"
     if err != nil{
         return err
     }
@@ -36,7 +35,8 @@ func (g *googleAuthorizer) init(config *types.OttConfig) error {
     return nil
 }
 
-func (g *googleAuthorizer) GenerateAuthorizeURL(config *types.OttConfig) (string, error) {
+func (g *googleAuthorizer) GenerateAuthorizeURL(config *types.OttConfig, redirectURL string) (string, error) {
+    g.googleConfig.RedirectURL = redirectURL
     g.state = "oauth2-test-tool-google-authorization-flow-state"
     return g.googleConfig.AuthCodeURL(g.state, oauth2.AccessTypeOffline, oauth2.ApprovalForce), nil
 }
