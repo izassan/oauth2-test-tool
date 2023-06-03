@@ -5,10 +5,12 @@ import (
 	"errors"
 	"os"
 
+	"github.com/izassan/oidc-testing-tool/config"
+	"github.com/izassan/oidc-testing-tool/flows/code"
 	"github.com/spf13/cobra"
 )
 
-func parseConfig(filePath string) (*OttConfig, error){
+func parseConfig(filePath string) (*config.OttConfig, error){
     f, err := os.Open(filePath)
     if err != nil{
         return nil, errors.New("file open error")
@@ -20,7 +22,7 @@ func parseConfig(filePath string) (*OttConfig, error){
     }
 
 
-    var ottConfig *OttConfig
+    var ottConfig *config.OttConfig
     if err := json.Unmarshal(b[:bcount], &ottConfig); err != nil{
         return nil, errors.New("file open error")
 
@@ -38,12 +40,15 @@ var rootCmd = &cobra.Command{
             return err
         }
 
-        config, err := parseConfig(filePath)
+        ottConfig, err := parseConfig(filePath)
         if err != nil{
             return err
         }
-        if config.AuthFlow == AUTHORIZECODEFLOW {
-        }else if config.AuthFlow == CLIENTCREDENTIALSFLOW{
+        if ottConfig.AuthFlow == AUTHORIZECODEFLOW {
+            if err := code.ExecuteAuthorizeCodeFlow(ottConfig, flags); err != nil{
+                return err
+            }
+        }else if ottConfig.AuthFlow == CLIENTCREDENTIALSFLOW{
         }else{
             return errors.New("Unsupported Authorization Flow. Fix 'auth_flow' parameter")
         }
@@ -60,6 +65,7 @@ func main(){
 
 func init() {
     rootCmd.Flags().StringP("file", "f", "./config.json", "config file path")
+    rootCmd.Flags().StringP("host", "H", "localhost", "callback server host")
     rootCmd.Flags().IntP("port", "p", 8893, "callback server port")
     rootCmd.Flags().BoolP("no-browser", "b", false, "not browser option")
 }
