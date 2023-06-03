@@ -1,4 +1,4 @@
-package main
+package config
 
 type OttConfig struct{
     AuthFlow string `json:"auth_flow"`
