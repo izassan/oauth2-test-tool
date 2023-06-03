@@ -3,15 +3,12 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 
-	"github.com/izassan/oauth2-testtool/flows"
-	"github.com/izassan/oauth2-testtool/types"
 	"github.com/spf13/cobra"
 )
 
-func parseConfig(filePath string) (*types.OttConfig, error){
+func parseConfig(filePath string) (*OttConfig, error){
     f, err := os.Open(filePath)
     if err != nil{
         return nil, errors.New("file open error")
@@ -23,7 +20,7 @@ func parseConfig(filePath string) (*types.OttConfig, error){
     }
 
 
-    var ottConfig *types.OttConfig
+    var ottConfig *OttConfig
     if err := json.Unmarshal(b[:bcount], &ottConfig); err != nil{
         return nil, errors.New("file open error")
 
@@ -36,21 +33,19 @@ var rootCmd = &cobra.Command{
     Long: "command",
     RunE: func(cmd *cobra.Command, args []string) error {
         flags := cmd.Flags()
-        filePath, err := cmd.Flags().GetString("file")
+        filePath, err := flags.GetString("file")
         if err != nil{
-            fmt.Println(err.Error())
             return err
         }
 
         config, err := parseConfig(filePath)
         if err != nil{
-            fmt.Println(err.Error())
             return err
         }
-        if config.Auth_flow == "authorization_code" {
-            if err := flows.AuthorizationCodeFlow(config, flags); err != nil{
-                fmt.Println(err.Error())
-            }
+        if config.AuthFlow == AUTHORIZECODEFLOW {
+        }else if config.AuthFlow == CLIENTCREDENTIALSFLOW{
+        }else{
+            return errors.New("Unsupported Authorization Flow. Fix 'auth_flow' parameter")
         }
         return nil
     },
