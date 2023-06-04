@@ -7,10 +7,11 @@ type authorizeParameters struct {
     redirectURI string
     state string
     nonce string
-    pkce pkce
+    pkce *pkce
 }
 
 type pkce struct {
     codeChallengeMethod string
     codeChallenge string
+    codeVerifier string
 }

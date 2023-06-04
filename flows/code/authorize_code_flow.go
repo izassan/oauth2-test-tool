@@ -18,21 +18,36 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
     if err != nil{
         return err
     }
+
+    state, err := generateState()
+    if err != nil{
+        return err
+    }
+
+    nonce, err := generateNonce()
+    if err != nil{
+        return err
+    }
+
+    pkce, err := generatePKCE()
+    if err != nil{
+        return err
+    }
+
     authParam := &authorizeParameters{
         clientId: config.ClientId,
         scope: config.Scope,
         responseType: RESPONSETYPE,
         redirectURI: fmt.Sprintf("http://%s:%d/callback", host, port),
-        state: generateState(),
-        nonce: generateNonce(),
-        pkce: generatePKCE(),
+        state: state,
+        nonce: nonce,
+        pkce: pkce,
     }
 
-    // TODO: generate AuthorizeURL
-    authURI, err := generateAuthorizeURL(authParam)
+    authURI, err := generateAuthorizeURL(config.AuthURI, authParam)
 
     // TODO: output stdout or start browser
-    fmt.Printf(authURI)
+    fmt.Printf("%s\n", authURI)
 
     // TODO: start callback server
     go startCallbackServer()
