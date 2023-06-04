@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/izassan/oidc-testing-tool/config"
@@ -42,15 +43,17 @@ var rootCmd = &cobra.Command{
 
         ottConfig, err := parseConfig(filePath)
         if err != nil{
-            return err
+            fmt.Printf("error: %s\n", err.Error())
+            return nil
         }
         if ottConfig.AuthFlow == AUTHORIZECODEFLOW {
             if err := code.ExecuteAuthorizeCodeFlow(ottConfig, flags); err != nil{
-                return err
+                fmt.Printf("error: %s\n", err.Error())
+                return nil
             }
         }else if ottConfig.AuthFlow == CLIENTCREDENTIALSFLOW{
         }else{
-            return errors.New("Unsupported Authorization Flow. Fix 'auth_flow' parameter")
+            fmt.Println("Unsupported Authorization Flow. Fix 'auth_flow' parameter")
         }
         return nil
     },

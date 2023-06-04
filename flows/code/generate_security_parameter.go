@@ -3,7 +3,7 @@ package code
 import (
 	"crypto/rand"
 	"crypto/sha256"
-	"fmt"
+	"encoding/base64"
 )
 
 const letters = "abcdefghimnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -32,8 +32,13 @@ func generatePKCE() (*pkce, error){
     return &pkce{
         codeVerifier: codeVerifier,
         codeChallengeMethod: "S256",
-        codeChallenge: fmt.Sprintf("%x", sha256.Sum256([]byte(codeVerifier))),
+        codeChallenge: generateSHA256CodeChallenge(codeVerifier),
     }, nil
+}
+
+func generateSHA256CodeChallenge(codeVerifier string) string{
+    hash := sha256.Sum256([]byte(codeVerifier))
+    return base64.RawURLEncoding.EncodeToString(hash[:])
 }
 
 func generateRandomString(digit uint32) (string, error){

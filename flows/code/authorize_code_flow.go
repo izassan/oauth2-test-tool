@@ -1,7 +1,12 @@
 package code
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"os/exec"
+	"runtime"
 
 	"github.com/izassan/oidc-testing-tool/config"
 	"github.com/spf13/pflag"
@@ -46,16 +51,76 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
 
     authURI, err := generateAuthorizeURL(config.AuthURI, authParam)
 
-    // TODO: output stdout or start browser
-    fmt.Printf("%s\n", authURI)
+    noUseBrowser, err := flags.GetBool("no-browser")
+    if err != nil{
+        return err
+    }
+    if !noUseBrowser{
+        browserError := make(chan error)
+        go startBrowser(authURI, browserError)
+        be := <-browserError
+        if be != nil{
+            return err
+        }
+    }else{
+        fmt.Printf("Access To:\n\t%s\n", authURI)
+    }
 
-    // TODO: start callback server
-    go startCallbackServer()
 
-    // TODO: get request to redirect_uri
+    ctx, cancel := context.WithCancel(context.Background())
+    callbackRequestChannel := make(chan *http.Request)
+    go startCallbackServer(ctx, host, port, callbackRequestChannel)
+    callbackRequest := <- callbackRequestChannel
+    cancel()
 
-    // TODO: request to token endpoint
+    queries := callbackRequest.URL.Query()
+    authCodeParams := &authorizeCodeParameters{
+        code: queries.Get("code"),
+        state: queries.Get("state"),
+        scope: queries.Get("scope"),
+    }
+    if authCodeParams.state != state{
+        return errors.New("invlid state")
+    }
 
-    // TODO: output result
+    exchangeParams := &tokenExchangeParams{
+        code: authCodeParams.code,
+        clientId: config.ClientId,
+        clientSecret: config.ClientSecret,
+        redirectURI: authParam.redirectURI,
+        grantType: "authorization_code",
+        codeVerifier: authParam.pkce.codeVerifier,
+    }
+    token, err := exchangeToken(config.TokenURI, exchangeParams)
+    if err != nil{
+        return err
+    }
+
+    fmt.Printf("access_token: %s\n", token.accessToken)
+    fmt.Printf("id_token: %s\n", token.idToken)
+    fmt.Printf("refresh_token: %s\n", token.refreshToken)
+    fmt.Printf("scope: %s\n", token.scope)
+    fmt.Printf("token_type: %s\n", token.tokenType)
+    fmt.Printf("expire_in: %d\n", token.expiresIn)
+
     return nil
+}
+
+func startBrowser(uri string, berr chan error){
+    var err error
+	switch runtime.GOOS {
+	case "linux":
+        err = exec.Command("xdg-open", uri).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", uri).Start()
+	case "darwin":
+		err = exec.Command("open", uri).Start()
+	default:
+		err = errors.New("Unsupported OS")
+	}
+    if err != nil{
+        berr <- err
+        return
+    }
+    berr <- nil
 }
