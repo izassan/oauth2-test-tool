@@ -17,6 +17,7 @@ func generateAuthorizeURL(authURL string, authParams *authorizeParameters) (stri
     q.Add("response_type", authParams.responseType)
 
     q.Add("state", authParams.state)
+    q.Add("nonce", authParams.nonce)
     q.Add("code_challenge", authParams.pkce.codeChallenge)
     q.Add("code_challenge_method", authParams.pkce.codeChallengeMethod)
 
