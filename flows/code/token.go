@@ -1,8 +1,7 @@
 package code
 
 import (
-	"errors"
-	"fmt"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -24,7 +23,9 @@ func exchangeToken(tokenURI string, params *tokenExchangeParams) (*token, error)
     defer res.Body.Close()
 
     bodyBytes, _ := io.ReadAll(res.Body)
-    body := string(bodyBytes)
-    fmt.Println(body)
-    return nil, errors.New("unimpletement")
+    var t token
+    if err := json.Unmarshal(bodyBytes, &t); err != nil{
+        return nil, err
+    }
+    return &t, nil
 }
