@@ -102,6 +102,10 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
     fmt.Printf("scope: %s\n", token.Scope)
     fmt.Printf("token_type: %s\n", token.TokenType)
     fmt.Printf("expire_in: %d\n", token.ExpiresIn)
+    if err := parseIdToken(token.IdToken, nonce); err != nil{
+        return err
+    }
+
     return nil
 }
 
