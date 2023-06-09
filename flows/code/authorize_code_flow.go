@@ -63,7 +63,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
             return err
         }
     }else{
-        fmt.Printf("Access To:\n\t%s\n", authURI)
+        fmt.Printf("Access To:\n\t%s\n\n", authURI)
     }
 
 
