@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 )
 
 func startCallbackServer(ctx context.Context, host string, port int, rc chan *http.Request){
@@ -27,7 +26,6 @@ func startCallbackServer(ctx context.Context, host string, port int, rc chan *ht
     case <-ctx.Done():
         if err := server.Shutdown(ctx); err != nil{
             fmt.Println("Failed Shutdown")
-            os.Exit(1)
         }
     }
 }
