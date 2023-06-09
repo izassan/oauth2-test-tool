@@ -96,14 +96,12 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
         return err
     }
 
-    decodedIdToken, err := parseIdToken(token.IdToken, nonce)
-    if err != nil{
+    if err := parseIdToken(token.IdToken, nonce); err != nil{
         return err
     }
 
     fmt.Printf("access_token: %s\n", token.AccessToken)
     fmt.Printf("id_token_raw: %s\n", token.IdToken)
-    fmt.Printf("id_token_nonce: %s\n", decodedIdToken.claims["nonce"])
     fmt.Printf("refresh_token: %s\n", token.RefreshToken)
     fmt.Printf("scope: %s\n", token.Scope)
     fmt.Printf("token_type: %s\n", token.TokenType)

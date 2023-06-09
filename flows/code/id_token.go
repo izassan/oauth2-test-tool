@@ -2,7 +2,6 @@ package code
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -13,25 +12,21 @@ type idToken struct{
     signature string
 }
 
-func parseIdToken(jwtString string, correctNonce string) (*idToken, error) {
+func parseIdToken(jwtString string, correctNonce string) error {
     token, err := jwt.Parse(jwtString, func(token *jwt.Token) (interface{}, error){
-        return []byte("base"), nil
+        claims, ok := token.Claims.(jwt.MapClaims)
+        if ok{
+            if claims["nonce"] != correctNonce{
+                return nil, errors.New("invalid nonce parameter")
+            }
+        }
+        return []byte("unverify"), nil
     })
     if token.Valid {
-        return nil, err
-    }
-    claims, ok := token.Claims.(jwt.MapClaims)
-    if ok{
-        if claims["nonce"] != correctNonce{
-            return nil, errors.New("invalid nonce parameter")
-        }
+        return err
     }
 
-    return &idToken{
-        header: nil,
-        claims: claims,
-        signature: "",
-    }, nil
+    return nil
 }
 
 func validateNonce(validateNonce string, correctNonce string) error {
@@ -40,5 +35,3 @@ func validateNonce(validateNonce string, correctNonce string) error {
     }
     return nil
 }
-
-
