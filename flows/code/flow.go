@@ -55,14 +55,12 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
     }else{
         fmt.Printf("Access To:\n\t%s\n\n", authURI)
     }
-    return nil
-
 
     ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
     callbackRequestChannel := make(chan *http.Request)
     go startCallbackServer(ctx, host, port, callbackRequestChannel)
     callbackRequest := <- callbackRequestChannel
-    cancel()
 
     queries := callbackRequest.URL.Query()
     authCodeParams := &authorizeCodeParameters{
