@@ -4,6 +4,6 @@ build:
 run:
 	go run .
 
-run-no-browser:
+run-nb:
 	go run . -b
 
