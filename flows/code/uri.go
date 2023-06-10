@@ -16,10 +16,16 @@ func generateAuthorizeURL(authURL string, authParams *authorizeParameters) (stri
     q.Add("scope", authParams.scope)
     q.Add("response_type", authParams.responseType)
 
-    q.Add("state", authParams.state)
-    q.Add("nonce", authParams.nonce)
-    q.Add("code_challenge", authParams.pkce.codeChallenge)
-    q.Add("code_challenge_method", authParams.pkce.codeChallengeMethod)
+    if authParams.state != ""{
+        q.Add("state", authParams.state)
+    }
+    if authParams.nonce != ""{
+        q.Add("nonce", authParams.nonce)
+    }
+    if authParams.pkce != nil{
+        q.Add("code_challenge", authParams.pkce.codeChallenge)
+        q.Add("code_challenge_method", authParams.pkce.codeChallengeMethod)
+    }
 
     authorizeURL.RawQuery = q.Encode()
 

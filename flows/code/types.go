@@ -10,12 +10,6 @@ type authorizeParameters struct {
     pkce *pkce
 }
 
-type pkce struct {
-    codeChallengeMethod string
-    codeChallenge string
-    codeVerifier string
-}
-
 type authorizeCodeParameters struct {
     code string
     state string

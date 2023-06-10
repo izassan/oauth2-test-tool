@@ -24,17 +24,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
         return err
     }
 
-    state, err := generateState()
-    if err != nil{
-        return err
-    }
-
-    nonce, err := generateNonce()
-    if err != nil{
-        return err
-    }
-
-    pkce, err := generatePKCE()
+    sp, err := newSecurityParams()
     if err != nil{
         return err
     }
@@ -44,9 +34,9 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
         scope: config.Scope,
         responseType: RESPONSETYPE,
         redirectURI: fmt.Sprintf("http://%s:%d/callback", host, port),
-        state: state,
-        nonce: nonce,
-        pkce: pkce,
+        state: sp.state,
+        nonce: sp.nonce,
+        pkce: sp.pkce,
     }
 
     authURI, err := generateAuthorizeURL(config.AuthURI, authParam)
@@ -65,6 +55,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
     }else{
         fmt.Printf("Access To:\n\t%s\n\n", authURI)
     }
+    return nil
 
 
     ctx, cancel := context.WithCancel(context.Background())
@@ -79,7 +70,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
         state: queries.Get("state"),
         scope: queries.Get("scope"),
     }
-    if authCodeParams.state != state{
+    if authCodeParams.state != sp.state{
         return errors.New("invlid state")
     }
 
@@ -96,7 +87,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
         return err
     }
 
-    if err := parseIdToken(token.IdToken, nonce); err != nil{
+    if err := parseIdToken(token.IdToken, sp.nonce); err != nil{
         return err
     }
 

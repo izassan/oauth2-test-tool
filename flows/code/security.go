@@ -8,24 +8,83 @@ import (
 
 const letters = "abcdefghimnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-func generateState() (string, error){
-    state, err := generateRandomString(20)
-    if err != nil{
-        return "", err
-    }
-    return state, nil
+type securityParams struct{
+    nonce string
+    state string
+    pkce *pkce
 }
 
-func generateNonce() (string, error){
-    nonce, err := generateRandomString(20)
-    if err != nil{
-        return "", err
-    }
-    return nonce, nil
+type pkce struct {
+    codeChallengeMethod string
+    codeChallenge string
+    codeVerifier string
 }
 
-func generatePKCE() (*pkce, error){
-    codeVerifier, err := generateRandomString(30)
+type (
+    codeSecurityConfig struct{
+        withoutNonce bool
+        withoutState bool
+        withoutPKCE bool
+    }
+    codeSecurityOption func(*codeSecurityConfig)error
+)
+
+func withoutNonce() codeSecurityOption{
+    return func(c *codeSecurityConfig)error{
+        c.withoutNonce = true
+        return nil
+    }
+}
+func withoutState() codeSecurityOption{
+    return func(c *codeSecurityConfig)error{
+        c.withoutState = true
+        return nil
+    }
+}
+func withoutPKCE() codeSecurityOption{
+    return func(c *codeSecurityConfig)error{
+        c.withoutPKCE = true
+        return nil
+    }
+}
+
+
+func newSecurityParams(options ...codeSecurityOption) (*securityParams, error){
+    config := &codeSecurityConfig{
+        withoutNonce: false,
+        withoutState: false,
+        withoutPKCE: false,
+    }
+
+    for _, opt := range options{
+        opt(config)
+    }
+
+    nonce, err := generateRandomString(20, config.withoutNonce)
+    if err != nil{
+        return nil, err
+    }
+    state, err := generateRandomString(20, config.withoutState)
+    if err != nil{
+        return nil, err
+    }
+    pkce, err := generatePKCE(config.withoutPKCE)
+    if err != nil{
+        return nil, err
+    }
+
+    return &securityParams{
+        nonce: nonce,
+        state: state,
+        pkce: pkce,
+    }, nil
+}
+
+func generatePKCE(disabled bool) (*pkce, error){
+    if disabled{
+        return nil, nil
+    }
+    codeVerifier, err := generateRandomString(30, false)
     if err != nil{
         return nil, nil
     }
@@ -41,7 +100,10 @@ func generateSHA256CodeChallenge(codeVerifier string) string{
     return base64.RawURLEncoding.EncodeToString(hash[:])
 }
 
-func generateRandomString(digit uint32) (string, error){
+func generateRandomString(digit uint32, disabled bool) (string, error){
+    if disabled{
+        return "", nil
+    }
     b := make([]byte, digit)
     if _, err := rand.Read(b); err != nil{
         return "", err
