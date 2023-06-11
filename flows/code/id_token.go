@@ -1,37 +1,44 @@
 package code
 
 import (
-	"errors"
+	"context"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 type idToken struct{
-    header map[string]string
-    claims jwt.MapClaims
-    signature string
+    jwt.Token
 }
 
-func parseIdToken(jwtString string, correctNonce string) error {
-    token, err := jwt.Parse(jwtString, func(token *jwt.Token) (interface{}, error){
-        claims, ok := token.Claims.(jwt.MapClaims)
-        if ok{
-            if claims["nonce"] != correctNonce{
-                return nil, errors.New("invalid nonce parameter")
-            }
+func parseIdToken(jwtString string, correctNonce string) (*idToken, error) {
+    const jwk_uri="https://www.googleapis.com/oauth2/v3/certs"
+    keyset, err := getJWKKey(jwk_uri)
+    if err != nil{
+        return nil, err
+    }
+
+    token, err := jwt.Parse([]byte(jwtString), jwt.WithKeySet(keyset))
+    if err != nil{
+        return nil, err
+    }
+    return &idToken{token}, nil
+}
+
+func getJWKKey(jwk_uri string) (jwk.Set, error) {
+    keyset, err := jwk.Fetch(context.Background(), jwk_uri)
+    if err != nil{
+        return nil, err
+    }
+
+    for it := keyset.Iterate(context.Background()); it.Next(context.Background()); {
+        pair := it.Pair()
+        key := pair.Value.(jwk.Key)
+
+        var rawkey interface{}
+        if err := key.Raw(&rawkey); err != nil{
+            return nil, err
         }
-        return []byte("unverify"), nil
-    })
-    if token.Valid {
-        return err
     }
-
-    return nil
-}
-
-func validateNonce(validateNonce string, correctNonce string) error {
-    if validateNonce != correctNonce {
-        return errors.New("invalid nonce parameter")
-    }
-    return nil
+    return keyset, nil
 }
