@@ -4,5 +4,6 @@
     "token_uri": "https://sample.com/token",
     "client_id": "client_id_hoge",
     "client_secret": "client_secret_hoge",
-    "scope": "openid, dummyapi.read"
+    "scope": "openid, dummyapi.read",
+    "jwk_uri": "https://sample.com/keys"
 }

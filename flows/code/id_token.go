@@ -11,9 +11,8 @@ type idToken struct{
     jwt.Token
 }
 
-func parseIdToken(jwtString string, correctNonce string) (*idToken, error) {
-    const jwk_uri="https://www.googleapis.com/oauth2/v3/certs"
-    keyset, err := getJWKKey(jwk_uri)
+func parseIdToken(jwtString string, jwkURI string, correctNonce string) (*idToken, error) {
+    keyset, err := getJWKKey(jwkURI)
     if err != nil{
         return nil, err
     }
@@ -25,8 +24,8 @@ func parseIdToken(jwtString string, correctNonce string) (*idToken, error) {
     return &idToken{token}, nil
 }
 
-func getJWKKey(jwk_uri string) (jwk.Set, error) {
-    keyset, err := jwk.Fetch(context.Background(), jwk_uri)
+func getJWKKey(jwkURI string) (jwk.Set, error) {
+    keyset, err := jwk.Fetch(context.Background(), jwkURI)
     if err != nil{
         return nil, err
     }

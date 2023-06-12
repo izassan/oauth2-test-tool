@@ -85,7 +85,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
         return err
     }
 
-    parsedIdToken, err := parseIdToken(token.IdToken, sp.nonce)
+    parsedIdToken, err := parseIdToken(token.IdToken, config.JwkURI, sp.nonce)
     if err != nil{
         return err
     }
