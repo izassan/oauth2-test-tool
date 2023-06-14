@@ -71,4 +71,5 @@ func init() {
     rootCmd.Flags().StringP("host", "H", "localhost", "callback server host")
     rootCmd.Flags().IntP("port", "p", 8893, "callback server port")
     rootCmd.Flags().BoolP("no-browser", "b", false, "not browser option")
+    rootCmd.Flags().BoolP("no-verify", "", false, "no verify id token")
 }

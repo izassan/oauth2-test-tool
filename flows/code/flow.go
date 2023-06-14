@@ -85,7 +85,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
         return err
     }
 
-    parsedIdToken, err := parseIdToken(token.IdToken, config.JwkURI, sp.nonce)
+    noVerifyRequired, err := flags.GetBool("no-verify")
     if err != nil{
         return err
     }
@@ -96,11 +96,16 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
     fmt.Printf("scope: %s\n", token.Scope)
     fmt.Printf("token_type: %s\n", token.TokenType)
     fmt.Printf("expire_in: %d\n", token.ExpiresIn)
-
-    fmt.Printf("----------------------\n")
-    fmt.Printf("id_token audiences: %s\n", parsedIdToken.Audience())
-    fmt.Printf("id_token issuer: %s\n", parsedIdToken.Issuer())
-    fmt.Printf("id_token jwtID: %s\n", parsedIdToken.JwtID())
+    if !noVerifyRequired {
+        parsedIdToken, err := parseIdToken(token.IdToken, config.JwkURI, sp.nonce)
+        if err != nil{
+            return err
+        }
+        fmt.Printf("----------------------\n")
+        fmt.Printf("id_token audiences: %s\n", parsedIdToken.Audience())
+        fmt.Printf("id_token issuer: %s\n", parsedIdToken.Issuer())
+        fmt.Printf("id_token jwtID: %s\n", parsedIdToken.JwtID())
+    }
     return nil
 }
 
