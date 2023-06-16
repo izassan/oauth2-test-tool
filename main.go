@@ -72,4 +72,5 @@ func init() {
     rootCmd.Flags().IntP("port", "p", 8893, "callback server port")
     rootCmd.Flags().BoolP("no-browser", "b", false, "not browser option")
     rootCmd.Flags().BoolP("no-verify", "", false, "no verify id token")
+    rootCmd.Flags().StringP("output", "o", "default", "output format type 'default', 'json'")
 }
