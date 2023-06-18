@@ -8,22 +8,11 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/izassan/oidc-testing-tool/config"
-	"github.com/spf13/pflag"
 )
 
 const RESPONSETYPE = "code"
 
-func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) error{
-    host, err := flags.GetString("host")
-    if err != nil{
-        return err
-    }
-    port, err := flags.GetInt("port")
-    if err != nil{
-        return err
-    }
-
+func ExecuteAuthorizeCodeFlow(config *AuthorizeCodeFlowConfig) error{
     sp, err := newSecurityParams()
     if err != nil{
         return err
@@ -33,7 +22,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
         clientId: config.ClientId,
         scope: config.Scope,
         responseType: RESPONSETYPE,
-        redirectURI: fmt.Sprintf("http://%s:%d/callback", host, port),
+        redirectURI: fmt.Sprintf("http://%s:%d/callback", config.RPConfig.Host, config.RPConfig.Port),
         state: sp.state,
         nonce: sp.nonce,
         pkce: sp.pkce,
@@ -41,11 +30,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
 
     authURI, err := generateAuthorizeURL(config.AuthURI, authParam)
 
-    noUseBrowser, err := flags.GetBool("no-browser")
-    if err != nil{
-        return err
-    }
-    if !noUseBrowser{
+    if config.UseBrowser{
         browserError := make(chan error)
         go startBrowser(authURI, browserError)
         be := <-browserError
@@ -59,7 +44,7 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
     ctx, cancel := context.WithCancel(context.Background())
     defer cancel()
     callbackRequestChannel := make(chan *http.Request)
-    go startCallbackServer(ctx, host, port, callbackRequestChannel)
+    go startCallbackServer(ctx, config.RPConfig.Host, config.RPConfig.Port, callbackRequestChannel)
     callbackRequest := <- callbackRequestChannel
 
     queries := callbackRequest.URL.Query()
@@ -85,24 +70,14 @@ func ExecuteAuthorizeCodeFlow(config *config.OttConfig, flags *pflag.FlagSet) er
         return err
     }
 
-    noVerifyRequired, err := flags.GetBool("no-verify")
-    if err != nil{
-        return err
-    }
-
-    outputType, err := flags.GetString("output")
-    if err != nil{
-        return err
-    }
-
-    if !noVerifyRequired {
+    if config.RequiredVerify{
         parsedIdToken, err := parseIdToken(token.IdToken, config.JwkURI, sp.nonce)
         if err != nil{
             return err
         }
-        outputResult(token, parsedIdToken, outputType)
+        outputResult(token, parsedIdToken, "default")
     }else{
-        outputResult(token, nil, outputType)
+        outputResult(token, nil, "default")
     }
     return nil
 }
