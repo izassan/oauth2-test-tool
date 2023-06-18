@@ -70,17 +70,14 @@ func ExecuteAuthorizeCodeFlow(config *AuthorizeCodeFlowConfig) error{
         return err
     }
 
-    outputTokenInfo(token)
-
     if config.RequiredVerify{
         parsedIdToken, err := parseIdToken(token.IdToken, config.JwkURI, sp.nonce)
         if err != nil{
             return err
         }
-        fmt.Printf("----------------------\n")
-        fmt.Printf("id_token audiences: %s\n", parsedIdToken.Audience())
-        fmt.Printf("id_token issuer: %s\n", parsedIdToken.Issuer())
-        fmt.Printf("id_token jwtID: %s\n", parsedIdToken.JwtID())
+        outputResult(token, parsedIdToken, "default")
+    }else{
+        outputResult(token, nil, "default")
     }
     return nil
 }
