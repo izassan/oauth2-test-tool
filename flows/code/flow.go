@@ -48,7 +48,7 @@ func ExecuteAuthorizeCodeFlow(config *AuthorizeCodeFlowConfig) error{
     callbackRequest := <- callbackRequestChannel
 
     queries := callbackRequest.URL.Query()
-    authCodeParams := &authorizeCodeParameters{
+    authCodeParams := &AuthorizeCode{
         code: queries.Get("code"),
         state: queries.Get("state"),
         scope: queries.Get("scope"),
@@ -71,11 +71,11 @@ func ExecuteAuthorizeCodeFlow(config *AuthorizeCodeFlowConfig) error{
     }
 
     if config.RequiredVerify{
-        parsedIdToken, err := parseIdToken(token.IdToken, config.JwkURI, sp.nonce)
+        err := token.ParseIdToken(token.IdToken, config.JwkURI, sp.nonce)
         if err != nil{
             return err
         }
-        outputResult(token, parsedIdToken, "default")
+        outputResult(token, token.DecodedIdToken, "default")
     }else{
         outputResult(token, nil, "default")
     }
@@ -99,4 +99,15 @@ func startBrowser(uri string, berr chan error){
         return
     }
     berr <- nil
+}
+
+func outputResult(t *Token, it *IDToken, formatType string){
+    if formatType != "default"{
+        fmt.Println("warning: specified unsupported or unimplement output format. output default format")
+    }
+    t.outputToken()
+    if it != nil{
+        fmt.Printf("----------------------\n")
+        it.outputIDToken()
+    }
 }
