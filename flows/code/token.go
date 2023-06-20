@@ -36,7 +36,7 @@ func (t *Token)ParseIdToken(jwtString string, jwkURI string, correctNonce string
     return nil
 }
 
-func (t *Token)outputToken() {
+func (t *Token)OutputToken() {
 	fmt.Printf("access_token: %s\n", t.AccessToken)
 	fmt.Printf("id_token: %s\n", t.IdToken)
 	fmt.Printf("refresh_token: %s\n", t.RefreshToken)
@@ -45,7 +45,7 @@ func (t *Token)outputToken() {
 	fmt.Printf("expire_in: %d\n", t.ExpiresIn)
 }
 
-func (t *IDToken)outputIDToken(){
+func (t *IDToken)OutputIDToken(){
         fmt.Printf("id_token audiences: %s\n", t.Audience())
         fmt.Printf("id_token issuer: %s\n", t.Issuer())
 }

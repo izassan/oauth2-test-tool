@@ -47,25 +47,20 @@ func ExecuteAuthorizeCodeFlow(config *AuthorizeCodeFlowConfig) error{
     go startCallbackServer(ctx, config.RPConfig.Host, config.RPConfig.Port, callbackRequestChannel)
     callbackRequest := <- callbackRequestChannel
 
-    queries := callbackRequest.URL.Query()
-    authCodeParams := &AuthorizeCode{
-        code: queries.Get("code"),
-        state: queries.Get("state"),
-        scope: queries.Get("scope"),
-    }
-    if authCodeParams.state != sp.state{
-        return errors.New("invlid state")
+    authorizeCode, err  := NewAuthorizeCode(callbackRequest, VerifyState(sp.state))
+    if err != nil{
+        return err
     }
 
     exchangeParams := &tokenExchangeParams{
-        code: authCodeParams.code,
+        tokenURI: config.TokenURI,
         clientId: config.ClientId,
         clientSecret: config.ClientSecret,
         redirectURI: authParam.redirectURI,
         grantType: "authorization_code",
         codeVerifier: authParam.pkce.codeVerifier,
     }
-    token, err := exchangeToken(config.TokenURI, exchangeParams)
+    token, err := authorizeCode.ExchangeToken(exchangeParams)
     if err != nil{
         return err
     }
@@ -105,9 +100,9 @@ func outputResult(t *Token, it *IDToken, formatType string){
     if formatType != "default"{
         fmt.Println("warning: specified unsupported or unimplement output format. output default format")
     }
-    t.outputToken()
+    t.OutputToken()
     if it != nil{
         fmt.Printf("----------------------\n")
-        it.outputIDToken()
+        it.OutputIDToken()
     }
 }
