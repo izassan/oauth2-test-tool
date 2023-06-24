@@ -1,4 +1,4 @@
-package code
+package security
 
 import (
 	"crypto/rand"
@@ -8,16 +8,16 @@ import (
 
 const letters = "abcdefghimnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-type securityParams struct{
-    nonce string
-    state string
+type SecurityParams struct{
+    nonce string `qname:"nonce"`
+    state string `qname:"state"`
     pkce *pkce
 }
 
 type pkce struct {
-    codeChallengeMethod string
-    codeChallenge string
-    codeVerifier string
+    codeChallengeMethod string `qname:"code_challenge_method"`
+    codeChallenge string `qname:"code_challenge"`
+    codeVerifier string `qname:"code_verifier"`
 }
 
 type (
@@ -49,7 +49,7 @@ func withoutPKCE() codeSecurityOption{
 }
 
 
-func newSecurityParams(options ...codeSecurityOption) (*securityParams, error){
+func NewSecurityParams(options ...codeSecurityOption) (*SecurityParams, error){
     config := &codeSecurityConfig{
         withoutNonce: false,
         withoutState: false,
@@ -73,7 +73,7 @@ func newSecurityParams(options ...codeSecurityOption) (*securityParams, error){
         return nil, err
     }
 
-    return &securityParams{
+    return &SecurityParams{
         nonce: nonce,
         state: state,
         pkce: pkce,
