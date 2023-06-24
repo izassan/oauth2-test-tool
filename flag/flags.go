@@ -1,14 +1,14 @@
-package main
+package flag
 
 import "github.com/spf13/pflag"
 
 // flag names
 const (
-    FILEFLAG = "file"
-    RPHOSTFLAG = "host"
-    RPPORTFLAG = "port"
-    NOBROWSERFLAG = "no-browser"
-    NOVERIFYFLAG = "no-verify"
+    FILE_FLAG_NAME = "file"
+    RPHOST_FLAG_NAME = "host"
+    RPPORT_FLAG_NAME = "port"
+    NO_BROWSER_FLAG_NAME = "no-browser"
+    NO_VERIFY_FLAG_NAME = "no-verify"
 )
 
 type Flags struct {
@@ -19,24 +19,24 @@ type Flags struct {
     NoVerify bool
 }
 
-func getOTTFlags(flagset *pflag.FlagSet) (*Flags, error){
-    fileFlag, err := flagset.GetString(FILEFLAG)
+func ParseFlags(flagset *pflag.FlagSet) (*Flags, error){
+    fileFlag, err := flagset.GetString(FILE_FLAG_NAME)
     if err != nil{
         return nil, err
     }
-    host, err := flagset.GetString(RPHOSTFLAG)
+    host, err := flagset.GetString(RPHOST_FLAG_NAME)
     if err != nil{
         return nil, err
     }
-    port, err := flagset.GetInt(RPPORTFLAG)
+    port, err := flagset.GetInt(RPPORT_FLAG_NAME)
     if err != nil{
         return nil, err
     }
-    noBroserFlag, err := flagset.GetBool(NOBROWSERFLAG)
+    noBroserFlag, err := flagset.GetBool(NO_BROWSER_FLAG_NAME)
     if err != nil{
         return nil, err
     }
-    noVerifyFlag, err := flagset.GetBool(NOVERIFYFLAG)
+    noVerifyFlag, err := flagset.GetBool(NO_VERIFY_FLAG_NAME)
     if err != nil{
         return nil, err
     }
