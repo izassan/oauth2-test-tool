@@ -35,17 +35,19 @@ func New(jsonFilePath string) (Config, error) {
 
 func getProvider(fileBytes []byte) (string, error){
     FailedGetProviderError := errors.New("failed get provider from json")
-    var rawJson map[string]string
+    FailedMappingError := errors.New("failed mapping from json")
+
+    var rawJson map[string]interface{}
     err := json.Unmarshal(fileBytes, &rawJson)
     if err != nil{
-        return "", FailedGetProviderError
+        return "", FailedMappingError
     }
 
     provider, exist := rawJson[KEY_PROVIDER]
     if !exist{
         return "", FailedGetProviderError
     }
-    return provider, nil
+    return provider.(string), nil
 }
 
 func getConfigByProvider(provider string, fileBytes []byte) (Config, error){

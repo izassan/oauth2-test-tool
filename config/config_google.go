@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
+	"reflect"
 
 	"github.com/izassan/oidc-testing-tool/security"
 )
 
 const GOOGLE_PROVIDER_NAME = "google"
+const QUERY_NAME_KEY = "qname"
 
 type GoogleOTTConfig struct{
     AuthFlow string `json:"auth_flow"`
@@ -44,14 +46,11 @@ func (c GoogleOTTConfig) GetFullAuthorizeURI() (string, error){
         return "", err
     }
     q := authorizeUri.Query()
-    // TODO: add queries
-    // required: client_id, redirect_uri, scope, response_type
-    // optional: state, nonce, code_challenge, code_challenge_method,
-    //              access_type, display, hd, login_hint, prompt
+    addQueries(c, &q)
+    addQueries(c.Authorize.AuthorizeOptions, &q)
 
     authorizeUri.RawQuery = q.Encode()
     return authorizeUri.String(), nil
-
 }
 
 func (c GoogleOTTConfig) GetTokenRequest() (*http.Request, error){
@@ -74,4 +73,19 @@ func (c GoogleOTTConfig) CreateSecurityParams() error{
     }
     c.SecurityParams = sp
     return nil
+}
+
+func addQueries(o any, q *url.Values){
+    refValues := reflect.ValueOf(o)
+    refTypes := refValues.Type()
+    for i:=0; i < refValues.NumField(); i++{
+        field := refTypes.Field(i)
+        value := refValues.FieldByName(field.Name).Interface()
+        if _, ok := value.(string); !ok || value == ""{
+            continue
+        }
+        if tagValue, ok := field.Tag.Lookup(QUERY_NAME_KEY); ok{
+            q.Add(tagValue, value.(string))
+        }
+    }
 }

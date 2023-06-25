@@ -28,6 +28,11 @@ var rootCmd = &cobra.Command{
         }
 
         // TODO: pass to flow
+        authorizeUri, err := cfg.GetFullAuthorizeURI()
+        if err != nil{
+            return err
+        }
+        fmt.Println(authorizeUri)
         return nil
     },
 }
