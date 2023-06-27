@@ -7,6 +7,7 @@ import (
 const GOOGLE_PROVIDER_NAME = "google"
 
 type GoogleOTTConfig struct{
+    Provider string `json:"provider"`
     AuthFlow string `json:"auth_flow"`
     ClientId string `json:"client_id"`
     ClientSecret string `json:"client_secret"`

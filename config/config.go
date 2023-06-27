@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
 	"os"
 
 	"github.com/izassan/oidc-testing-tool/flag"
