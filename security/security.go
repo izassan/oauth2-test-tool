@@ -9,74 +9,74 @@ import (
 const letters = "abcdefghimnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 type SecurityParams struct{
-    nonce string `qname:"nonce"`
-    state string `qname:"state"`
-    pkce *pkce
+    Nonce string
+    State string
+    Pkce *pkce
 }
 
 type pkce struct {
-    codeChallengeMethod string `qname:"code_challenge_method"`
-    codeChallenge string `qname:"code_challenge"`
-    codeVerifier string `qname:"code_verifier"`
+    CodeChallengeMethod string
+    CodeChallenge string
+    CodeVerifier string
 }
 
 type (
-    codeSecurityConfig struct{
-        withoutNonce bool
-        withoutState bool
-        withoutPKCE bool
+    CodeSecurityConfig struct{
+        WithoutNonce bool
+        WithoutState bool
+        WithoutPKCE bool
     }
-    codeSecurityOption func(*codeSecurityConfig)error
+    codeSecurityOption func(*CodeSecurityConfig)error
 )
 
 func withoutNonce() codeSecurityOption{
-    return func(c *codeSecurityConfig)error{
-        c.withoutNonce = true
+    return func(c *CodeSecurityConfig)error{
+        c.WithoutNonce = true
         return nil
     }
 }
 func withoutState() codeSecurityOption{
-    return func(c *codeSecurityConfig)error{
-        c.withoutState = true
+    return func(c *CodeSecurityConfig)error{
+        c.WithoutState = true
         return nil
     }
 }
 func withoutPKCE() codeSecurityOption{
-    return func(c *codeSecurityConfig)error{
-        c.withoutPKCE = true
+    return func(c *CodeSecurityConfig)error{
+        c.WithoutPKCE = true
         return nil
     }
 }
 
 
 func NewSecurityParams(options ...codeSecurityOption) (*SecurityParams, error){
-    config := &codeSecurityConfig{
-        withoutNonce: false,
-        withoutState: false,
-        withoutPKCE: false,
+    config := &CodeSecurityConfig{
+        WithoutNonce: false,
+        WithoutState: false,
+        WithoutPKCE: false,
     }
 
     for _, opt := range options{
         opt(config)
     }
 
-    nonce, err := generateRandomString(20, config.withoutNonce)
+    nonce, err := generateRandomString(20, config.WithoutNonce)
     if err != nil{
         return nil, err
     }
-    state, err := generateRandomString(20, config.withoutState)
+    state, err := generateRandomString(20, config.WithoutState)
     if err != nil{
         return nil, err
     }
-    pkce, err := generatePKCE(config.withoutPKCE)
+    pkce, err := generatePKCE(config.WithoutPKCE)
     if err != nil{
         return nil, err
     }
 
     return &SecurityParams{
-        nonce: nonce,
-        state: state,
-        pkce: pkce,
+        Nonce: nonce,
+        State: state,
+        Pkce: pkce,
     }, nil
 }
 
@@ -89,9 +89,9 @@ func generatePKCE(disabled bool) (*pkce, error){
         return nil, nil
     }
     return &pkce{
-        codeVerifier: codeVerifier,
-        codeChallengeMethod: "S256",
-        codeChallenge: generateSHA256CodeChallenge(codeVerifier),
+        CodeVerifier: codeVerifier,
+        CodeChallengeMethod: "S256",
+        CodeChallenge: generateSHA256CodeChallenge(codeVerifier),
     }, nil
 }
 
