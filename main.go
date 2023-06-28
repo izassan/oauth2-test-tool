@@ -6,6 +6,9 @@ import (
 
 	"github.com/izassan/oidc-testing-tool/config"
 	"github.com/izassan/oidc-testing-tool/flag"
+	"github.com/izassan/oidc-testing-tool/flow/google"
+	"github.com/izassan/oidc-testing-tool/security"
+	"github.com/izassan/oidc-testing-tool/server"
 	"github.com/spf13/cobra"
 )
 
@@ -13,26 +16,33 @@ var rootCmd = &cobra.Command{
     Use: "example",
     Long: "command",
     RunE: func(cmd *cobra.Command, args []string) error {
-        filePath, err := cmd.Flags().GetString("file")
+        flags, err := flag.ParseFlags(cmd.Flags())
         if err != nil{
             return err
         }
 
-        cfg, err := config.New(filePath)
+        cfg, err := config.New(flags.FilePath, flags)
         if err != nil{
             fmt.Fprintf(os.Stderr, "error: %s\n", err.Error())
         }
 
-        if err := cfg.CreateSecurityParams(); err != nil{
-            return err
-        }
-
-        // TODO: pass to flow
-        authorizeUri, err := cfg.GetFullAuthorizeURI()
+        sp, err := security.NewSecurityParams()
         if err != nil{
             return err
         }
-        fmt.Println(authorizeUri)
+
+        serv, err := server.New(flags.RPHost, flags.RPPort)
+        if err != nil{
+            return err
+        }
+
+        authorizer, err := google.New(cfg.(config.GoogleOTTConfig), sp, serv)
+        if err != nil{
+            return err
+        }
+
+        fmt.Println(authorizer.GenerateAuthorizeEndpointURI())
+
         return nil
     },
 }
