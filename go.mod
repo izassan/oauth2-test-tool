@@ -19,6 +19,8 @@ require (
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/jwx/v2 v2.0.9 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
 )
